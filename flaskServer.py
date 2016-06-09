@@ -54,7 +54,7 @@ proj = Project('3-proj', '3-cat')
 
 # ここからindex : method とかを定義していく。
 
-@app.route('/')
+@app.route('/api')
 def index():
 	proj_obj = Project.query.all()
 	proj_list = []
@@ -64,27 +64,27 @@ def index():
 
 	return jsonify(Project=proj_list)
 
-@app.route('/create')
+@app.route('/api/create')
 def create_project():
 
 	return "新しいProjectの作成"
 
-@app.route('/delete')
+@app.route('/api/delete')
 def delete_project(project_id):
 	return "Projectの削除をする"
 
 
 #brain_storming部分の画面
-@app.route('/project/<project_id>')
+@app.route('/api/project/<project_id>')
 def brain_storming(project_id):
 	return "Brain Storming"
 
 
-@app.route('/project/update')
+@app.route('/api/project/update')
 def update_node(project_id):
 	return "update node"
 
-@app.route('/morphologic', methods=['POST'])
+@app.route('/api/morphologic', methods=['POST'])
 def extractKeyword():
     text = request.form['text']
     tagger = mecab.Tagger("-Ochasen")
