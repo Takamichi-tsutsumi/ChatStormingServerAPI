@@ -17,15 +17,13 @@ db = SQLAlchemy(app)
 # / should be in models.py
 class Project(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
-	name = db.Column(db.String(120))
-	category_name = db.Column(db.String(120))
+	name = db.Column(db.String(120), unique=True)
 
-	def __init__(self,name,category_name):
+	def __init__(self,name):
 		self.name = name
-		self.category_name = category_name
 
 	def __repr__(self):
-		return '<Project name={name} category_name={category_name}>'.format(name=self.name, category_name=self.category_name)
+		return '<Project id={id} name={name}>'.format(id = self.id, name=self.name)
 
 
 class Node(db.Model):
@@ -45,12 +43,6 @@ class Node(db.Model):
 
 # ./ should be in models.py
 
-#""" データベースに入れるところ書いておく
-
-proj = Project('3-proj', '3-cat')
-
-#"""
-
 
 # ここからindex : method とかを定義していく。
 
@@ -59,15 +51,26 @@ def index():
 	proj_obj = Project.query.all()
 	proj_list = []
 	for i in proj_obj:
-		cont = {'id': i.id, 'name': i.name, 'category_name': i.category_name}
+		cont = {'id': i.id, 'name': i.name}
 		proj_list.append(cont)
 
 	return jsonify(Project=proj_list)
 
-@app.route('/api/create')
+@app.route('/api/create', methods=['POST'])
 def create_project():
+	new_proj = Project(methods.form['name'])
+	db.session.add(new_proj)
+	result = {}
+	try:
+		db.session.commit()
+		result.update({'result':'success', 'project_id':new_proj.id})		
+	except:
+		result.update({'result':'fail', 'msg':u'同じ名前のプロジェクト名があります。'})
+	finally:
+		return jsonify(Result=result)
 
-	return "新しいProjectの作成"
+
+	return ''
 
 @app.route('/api/delete')
 def delete_project(project_id):
