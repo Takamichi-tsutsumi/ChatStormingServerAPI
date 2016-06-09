@@ -89,7 +89,7 @@ def update_node(project_id):
 
 @app.route('/api/morphologic', methods=['POST'])
 def extractKeyword():
-    text = request.form['text']
+    text = request.json[u'text']
     tagger = mecab.Tagger("-Ochasen")
     node = tagger.parseToNode(text.encode('utf-8'))
     keywords = []
@@ -99,7 +99,7 @@ def extractKeyword():
         elif node.feature.split(",")[0].decode('utf-8') == u'動詞':
             keywords.append(node.feature.split(",")[6])
         node = node.next
-    return jsonify(keywords= keywords)
+    return jsonify(keywords=keywords)
 
 
 if __name__ == '__main__':
