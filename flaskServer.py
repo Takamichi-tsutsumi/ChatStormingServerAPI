@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #/ usually written in app.py 
-from flask import Flask
+from flask import Flask, request
 from flask_sqlalchemy import SQLAlchemy
 from flask import jsonify
 import MeCab as mecab
@@ -84,19 +84,19 @@ def brain_storming(project_id):
 def update_node(project_id):
 	return "update node"
 
-@app.route('/morphologic')
-def extractKeyword(text):
-	#textを形態素解析して、名詞・動詞のみのリストを返す
-	tagger = mecab.Tagger("-Ochasen")
-	node = tagger.parseToNode(text.encode('utf-8'))
-	keywords = []
-	while node:
-		if node.feature.split(",")[0].decode('utf-8') == u'名詞':
-			keywords.append(node.surface)
-		elif node.feature.split(",")[0].decode('utf-8') == u'動詞':
-			keywords.append(node.feature.split(",")[6])
-		node = node.next
-	return jsonify(keywords= keywords)
+@app.route('/morphologic', methods=['POST'])
+def extractKeyword():
+    text = request.form['text']
+    tagger = mecab.Tagger("-Ochasen")
+    node = tagger.parseToNode(text.encode('utf-8'))
+    keywords = []
+    while node:
+        if node.feature.split(",")[0].decode('utf-8') == u'名詞':
+            keywords.append(node.surface)
+        elif node.feature.split(",")[0].decode('utf-8') == u'動詞':
+            keywords.append(node.feature.split(",")[6])
+        node = node.next
+    return jsonify(keywords= keywords)
 
 
 if __name__ == '__main__':
