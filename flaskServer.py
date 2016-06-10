@@ -90,10 +90,21 @@ def create_project():
         result.update({'result':'fail', 'msg':u'もう一度やり直してください。'})
     return jsonify(Result=result)
 
-@app.route('/api/delete')
+@app.route('/api/delete/<project_id>')
 def delete_project(project_id):
-    return "Projectの削除をする"
-
+    proj = Project.query.filter(Project.id == project_id).first()
+    db.session.delete(proj)
+    result = {}
+    try:
+        db.session.commit()
+        db.session.flush(proj)
+        result.update({'result': 'success'})
+    except:
+        result.update({'result': 'fail'})
+    finally:
+        return jsonyfi(Result = result)
+    
+    return "Projectの削除をした"
 
 #brain_storming部分の画面
 @app.route('/api/project/<project_id>')
@@ -118,9 +129,21 @@ def create_node():
     except:
         return jsonify({'result': 'fail'})
 
-@app.route('/api/project/<project_id>/family/create')
-def family_create():
-    return u"family-createするお"
+@app.route('/api/project/<project_id>/family/create', methods=['POST'])
+def family_create(project_id):
+    data = json.loads(request.json['data'])
+    fam_obj = Family(data['name'], data['nodes'], data['project_id'])
+    db.session.add(fam_obj)
+    result = {}
+    try:
+        db.session.commit()
+        db.session.flush(fam_obj)
+        result.update({'result':'success', 'family_id': fam_obj.id})
+    except:
+        result.update({'result', 'fail', 'msg':'失敗しました。'})
+    finally:
+        jsonify(Result=result)
+    return u"family-createするやつ"
 
 @app.route('/api/morphologic', methods=['POST'])
 def extractKeyword():
