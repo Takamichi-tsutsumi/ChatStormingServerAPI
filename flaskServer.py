@@ -6,6 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask import jsonify
 import MeCab as mecab
 import json
+from sqlalchemy.orm import relationship
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:root@localhost/applicot'
@@ -19,6 +20,8 @@ db = SQLAlchemy(app)
 class Project(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
 	name = db.Column(db.String(120), unique=True)
+	nodes = db.Column(db.String(250), nullable = False)
+	family = db.Column(db.String(120), nullable = False)
 
 	def __init__(self,name):
 		self.name = name
@@ -26,17 +29,26 @@ class Project(db.Model):
 	def __repr__(self):
 		return '<Project id={id} name={name}>'.format(id = self.id, name=self.name)
 
+class Family(db.Model):
+	id = db.Column(db.Integer, primary_key=True)
+	name = db.Column(db.String(80), unique=True)
+	nodes = db.Column(db.String(80), unique = True)
+	project_id = db.Column(db.Integer, nullable = False)
+
+	def __init__(self):
+		family_name = self.amily_name
+		nodes = self.nodes
+
+	def __repr__(self, project_id):
+		return '<Family id = {id}, family_name = {name}, nodes={nodes}, project_id={project_id}>'.format(id= self.id, name=self.name, nodes=self.nodes, project_id=self.project_id)
 
 class Node(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
 	name = db.Column(db.String(80), nullable = False)
 	parent_id = db.Column(db.Integer, nullable=False)
+	project_id = db.Column(db.Integer,db.ForeignKey('project.id'))
 
-	project_id = db.Column(db.Integer, db.ForeignKey('project.id'))
-
-	def __init__(self, name, parent_id, project_id):
-		self.name = name
-		self.parent_id = parent_id
+	def __init__(self, project_id, **kwargs):
 		self.project_id = project_id
 
 	def __repr__(self):
@@ -60,19 +72,20 @@ def index():
 @app.route('/api/create', methods=['POST'])
 def create_project():
     data = json.loads(request.json['data'])
-    project_name = data['name']
     theme = data['theme']
     new_proj = Project(data['name'])
+    origin_node = Node(theme)
 
     db.session.add(new_proj)
+    db.session.add(origin_node)
     result = {}
     try:
         db.session.commit()
         db.session.flush(new_proj)
-        print(new_proj.id)
+        db.session.flush(origin_node)
         result.update({'result':'success', 'project_id':new_proj.id})
     except:
-        result.update({'result':'fail', 'msg':u'同じ名前のプロジェクト名があります。'})
+        result.update({'result':'fail', 'msg':u'もう一度やり直してください。'})
     return jsonify(Result=result)
 
 @app.route('/api/delete')
@@ -83,12 +96,22 @@ def delete_project(project_id):
 #brain_storming部分の画面
 @app.route('/api/project/<project_id>')
 def brain_storming(project_id):
-	return "Brain Storming"
+	node_obj = Node.query.all()
+	node_list = []
+	for i in node_obj:
+		cont = {'id': i.id, 'node_name': i.name, 'parent_id': i.parent_id,}
+		node_list.append(cont)
+
+	return jsonify(Nodes=node_list)
 
 
-@app.route('/api/project/update')
-def update_node(project_id):
+@app.route('/api/node/create')
+def create_node(project_id):
 	return "update node"
+
+@app.route('/api/project/<project_id>/family/create')
+def family_create():
+	return u"family-createするお"
 
 @app.route('/api/morphologic', methods=['POST'])
 def extractKeyword():
