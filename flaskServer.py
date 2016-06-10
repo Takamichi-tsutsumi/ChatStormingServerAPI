@@ -36,7 +36,7 @@ class Family(db.Model):
 	project_id = db.Column(db.Integer, nullable = False)
 
 	def __init__(self):
-		family_name = self.amily_name
+		family_name = self.family_name
 		nodes = self.nodes
 
 	def __repr__(self, project_id):
@@ -46,7 +46,7 @@ class Node(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
 	name = db.Column(db.String(80), nullable = False)
 	parent_id = db.Column(db.Integer, nullable=False)
-	project_id = db.Column(db.Integer,db.ForeignKey('project.id'))
+	project_id = db.Column(db.Integer, nullable=False)
 
 	def __init__(self, project_id, **kwargs):
 		self.project_id = project_id
