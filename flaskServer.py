@@ -53,7 +53,7 @@ class Node(db.Model):
         self.parent_name = kwargs['parent_name']
 
     def __repr__(self):
-        return '<Node name={name} parent_id={parent_id} project_id={project_id}>'.format(name = self.name, parent_id = self.parent_id, project_id = self.project_id)
+        return '<Node name={name} parent_id={parent_name} project_id={project_id}>'.format(name=self.name, parent_name=self.parent_name, project_id=self.project_id)
 
 # ./ should be in models.py
 
@@ -81,7 +81,10 @@ def create_project():
     try:
         db.session.commit()
         db.session.flush(new_proj)
-        origin_node = Node(name=theme, parent="", project_id=new_proj.id)
+        print new_proj.id
+        origin_node = Node(name=theme, parent_name="", project_id=new_proj.id)
+        print 'hello'
+        print origin_node
         db.session.add(origin_node)
         db.session.commit()
         result.update({'result':'success', 'project_id':new_proj.id})
@@ -145,17 +148,27 @@ def family_create(project_id):
 
 @app.route('/api/morphologic', methods=['POST'])
 def extractKeyword():
-    text = request.json[u'text']
-    tagger = mecab.Tagger("-Ochasen")
-    node = tagger.parseToNode(text.encode('utf-8'))
-    keywords = []
-    while node:
-        if node.feature.split(",")[0].decode('utf-8') == u'名詞':
-            keywords.append(node.surface)
-        elif node.feature.split(",")[0].decode('utf-8') == u'動詞':
-            keywords.append(node.feature.split(",")[6])
-        node = node.next
-    return jsonify(keywords=keywords)
+    result = {}
+    if not request.json[u'text'] == '':
+        text = request.json[u'text']
+        tagger = mecab.Tagger("-Ochasen")
+        node = tagger.parseToNode(text.encode('utf-8'))
+        keywords = []
+        while node:
+            if node.feature.split(",")[0].decode('utf-8') == u'名詞':
+                try:
+                    keywords.append(node.surface.decode('utf-8'))
+                except UnicodeDecodeError:
+                    pass
+            elif node.feature.split(",")[0].decode('utf-8') == u'動詞':
+                try:
+                    keywords.append(node.feature.split(",")[-3].decode('utf-8'))
+                except UnicodeDecodeError:
+                    pass
+            else:
+                pass
+            node = node.next
+        return jsonify(keywords=keywords)
 
 if __name__ == '__main__':
     app.run()
