@@ -76,15 +76,14 @@ def create_project():
     data = json.loads(request.json['data'])
     theme = data['theme']
     new_proj = Project(data['name'])
-    origin_node = Node(theme)
 
     db.session.add(new_proj)
-    db.session.add(origin_node)
     result = {}
     try:
         db.session.commit()
         db.session.flush(new_proj)
-        db.session.flush(origin_node)
+        origin_node = Node(theme, parent="", new_proj.id)
+        db.session.add(origin_node)
         result.update({'result':'success', 'project_id':new_proj.id})
     except:
         result.update({'result':'fail', 'msg':u'もう一度やり直してください。'})
@@ -121,7 +120,7 @@ def brain_storming(project_id):
 @app.route('/api/node/create', methods=['POST'])
 def create_node():
     data = json.loads(request.json['data'])
-    node = Node(data['project_id'], name=data['name'], parent_name=data['parent'])
+    node = Node(data['project_id'], name=data['name'], parent=data['parent'])
     db.session.add(node)
     try:
         db.session.commit()
