@@ -5,6 +5,7 @@ from flask import Flask, request
 from flask_sqlalchemy import SQLAlchemy
 from flask import jsonify
 import MeCab as mecab
+import json
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:root@localhost/applicot'
@@ -58,19 +59,21 @@ def index():
 
 @app.route('/api/create', methods=['POST'])
 def create_project():
-	new_proj = Project(methods.form['name'])
-	db.session.add(new_proj)
-	result = {}
-	try:
-		db.session.commit()
-		result.update({'result':'success', 'project_id':new_proj.id})		
-	except:
-		result.update({'result':'fail', 'msg':u'同じ名前のプロジェクト名があります。'})
-	finally:
-		return jsonify(Result=result)
+    data = json.loads(request.json['data'])
+    project_name = data['name']
+    theme = data['theme']
+    new_proj = Project(data['name'])
 
-
-	return ''
+    db.session.add(new_proj)
+    result = {}
+    try:
+        db.session.commit()
+        db.session.flush(new_proj)
+        print(new_proj.id)
+        result.update({'result':'success', 'project_id':new_proj.id})
+    except:
+        result.update({'result':'fail', 'msg':u'同じ名前のプロジェクト名があります。'})
+    return jsonify(Result=result)
 
 @app.route('/api/delete')
 def delete_project(project_id):
