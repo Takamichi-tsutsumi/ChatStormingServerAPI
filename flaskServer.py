@@ -118,7 +118,7 @@ def brain_storming(project_id):
     return jsonify(Nodes=node_list)
 
 
-@app.route('/api/node/create')
+@app.route('/api/node/create', methods=['POST'])
 def create_node():
     data = json.loads(request.json['data'])
     node = Node(data['project_id'], name=data['name'], parent_name=data['parent'])
@@ -140,7 +140,7 @@ def family_create(project_id):
         db.session.flush(fam_obj)
         result.update({'result':'success', 'family_id': fam_obj.id})
     except:
-        result.update({'result', 'fail', 'msg':'失敗しました。'})
+        result.update({'result': 'fail', 'msg':'失敗しました。'})
     finally:
         jsonify(Result=result)
     return u"family-createするやつ"
