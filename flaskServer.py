@@ -7,6 +7,7 @@ from flask import jsonify
 import MeCab as mecab
 import json
 from sqlalchemy.orm import relationship
+from datetime import datetime
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:root@localhost/applicot'
@@ -20,12 +21,13 @@ db = SQLAlchemy(app)
 class Project(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), unique=True)
+    created_at = db.Column(db.DateTime,nullable=False, default=datetime.now())
 
     def __init__(self,**kwargs):
         self.name = kwargs['name']
 
     def __repr__(self):
-        return '<Project id={id} name={name}>'.format(id = self.id, name=self.name)
+        return u'<Project id={id} name={name} created_at={created_at}>'.format(id = self.id, name=self.name, created_at=self.created_at)
 
 class Family(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -39,7 +41,7 @@ class Family(db.Model):
         self.project_id = kwargs['project_id']
 
     def __repr__(self, project_id):
-        return '<Family id = {id}, family_name = {name}, nodes={nodes}, project_id={project_id}>'.format(id= self.id, name=self.name, nodes=self.nodes, project_id=self.project_id)
+        return u'<Family id = {id}, family_name = {name}, nodes={nodes}, project_id={project_id}>'.format(id= self.id, name=self.name, nodes=self.nodes, project_id=self.project_id)
 
 class Node(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -53,7 +55,7 @@ class Node(db.Model):
         self.parent_name = kwargs['parent_name']
 
     def __repr__(self):
-        return '<Node name={name} parent_id={parent_name} project_id={project_id}>'.format(name=self.name, parent_name=self.parent_name, project_id=self.project_id)
+        return u'<Node name={name} parent_id={parent_name} project_id={project_id}>'.format(name=self.name, parent_name=self.parent_name, project_id=self.project_id)
 
 # ./ should be in models.py
 
@@ -65,7 +67,7 @@ def index():
     proj_obj = Project.query.all()
     proj_list = []
     for i in proj_obj:
-        cont = {'id': i.id, 'name': i.name}
+        cont = {'id': i.id, 'name': i.name, 'created_at': i.created_at}
         proj_list.append(cont)
 
     return jsonify(Project=proj_list)
@@ -111,7 +113,7 @@ def delete_project(project_id):
 #brain_storming部分の画面
 @app.route('/api/project/<project_id>')
 def brain_storming(project_id):
-    node_obj = Node.query.all()
+    node_obj = Node.query.filter(Node.project_id == project_id).all()
     node_list = []
     for i in node_obj:
         cont = {'id': i.id, 'name': i.name, 'parent_name': i.parent_name}
@@ -145,6 +147,15 @@ def family_create(project_id):
         result.update({'result': 'fail', 'msg':'失敗しました。'})
     finally:
         return jsonify(Result=result)
+
+@app.route('/api/project/<project_id>/families')
+def familyList(project_id):
+    fam = Family.query.filter(Family.project_id == project_id).all()
+    fam_list = []
+    for i in fam:
+        cont = {'id':i.id, 'nodes':i.nodes, 'name': i.name}
+        fam_list.append(cont)
+    return jsonify(Families=fam_list)
 
 @app.route('/api/morphologic', methods=['POST'])
 def extractKeyword():
