@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#/ usually written in app.py 
+#/ usually written in app.py
 from flask import Flask, request
 from flask_sqlalchemy import SQLAlchemy
 from flask import jsonify
@@ -18,41 +18,43 @@ db = SQLAlchemy(app)
 
 # / should be in models.py
 class Project(db.Model):
-	id = db.Column(db.Integer, primary_key=True)
-	name = db.Column(db.String(120), unique=True)
-	nodes = db.Column(db.String(250), nullable = False)
-	family = db.Column(db.String(120), nullable = False)
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(120), unique=True)
+    nodes = db.Column(db.String(250), nullable = False)
+    family = db.Column(db.String(120), nullable = False)
 
-	def __init__(self,name):
-		self.name = name
+    def __init__(self,name):
+        self.name = name
 
-	def __repr__(self):
-		return '<Project id={id} name={name}>'.format(id = self.id, name=self.name)
+    def __repr__(self):
+        return '<Project id={id} name={name}>'.format(id = self.id, name=self.name)
 
 class Family(db.Model):
-	id = db.Column(db.Integer, primary_key=True)
-	name = db.Column(db.String(80), unique=True)
-	nodes = db.Column(db.String(80), unique = True)
-	project_id = db.Column(db.Integer, nullable = False)
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(80), unique=True)
+    nodes = db.Column(db.String(80), unique = True)
+    project_id = db.Column(db.Integer, nullable = False)
 
-	def __init__(self):
-		family_name = self.family_name
-		nodes = self.nodes
+    def __init__(self):
+        family_name = self.family_name
+        nodes = self.nodes
 
-	def __repr__(self, project_id):
-		return '<Family id = {id}, family_name = {name}, nodes={nodes}, project_id={project_id}>'.format(id= self.id, name=self.name, nodes=self.nodes, project_id=self.project_id)
+    def __repr__(self, project_id):
+        return '<Family id = {id}, family_name = {name}, nodes={nodes}, project_id={project_id}>'.format(id= self.id, name=self.name, nodes=self.nodes, project_id=self.project_id)
 
 class Node(db.Model):
-	id = db.Column(db.Integer, primary_key=True)
-	name = db.Column(db.String(80), nullable = False)
-	parent_id = db.Column(db.Integer, nullable=False)
-	project_id = db.Column(db.Integer, nullable=False)
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(80), nullable = False)
+    parent_name = db.Column(db.String(80), nullable=False)
+    project_id = db.Column(db.Integer, nullable=False)
 
-	def __init__(self, project_id, **kwargs):
-		self.project_id = project_id
+    def __init__(self, project_id, **kwargs):
+        self.project_id = project_id
+        self.name = kwargs['name']
+        self.parent_name = kwargs['parent']
 
-	def __repr__(self):
-		return '<Node name={name} parent_id={parent_id} project_id={project_id}>'.format(name = self.name, parent_id = self.parent_id, project_id = self.project_id) 
+    def __repr__(self):
+        return '<Node name={name} parent_id={parent_id} project_id={project_id}>'.format(name = self.name, parent_id = self.parent_id, project_id = self.project_id)
 
 # ./ should be in models.py
 
@@ -61,13 +63,13 @@ class Node(db.Model):
 
 @app.route('/api')
 def index():
-	proj_obj = Project.query.all()
-	proj_list = []
-	for i in proj_obj:
-		cont = {'id': i.id, 'name': i.name}
-		proj_list.append(cont)
+    proj_obj = Project.query.all()
+    proj_list = []
+    for i in proj_obj:
+        cont = {'id': i.id, 'name': i.name}
+        proj_list.append(cont)
 
-	return jsonify(Project=proj_list)
+    return jsonify(Project=proj_list)
 
 @app.route('/api/create', methods=['POST'])
 def create_project():
@@ -90,28 +92,35 @@ def create_project():
 
 @app.route('/api/delete')
 def delete_project(project_id):
-	return "Projectの削除をする"
+    return "Projectの削除をする"
 
 
 #brain_storming部分の画面
 @app.route('/api/project/<project_id>')
 def brain_storming(project_id):
-	node_obj = Node.query.all()
-	node_list = []
-	for i in node_obj:
-		cont = {'id': i.id, 'node_name': i.name, 'parent_id': i.parent_id,}
-		node_list.append(cont)
+    node_obj = Node.query.all()
+    node_list = []
+    for i in node_obj:
+        cont = {'id': i.id, 'node_name': i.name, 'parent_id': i.parent_id,}
+        node_list.append(cont)
 
-	return jsonify(Nodes=node_list)
+    return jsonify(Nodes=node_list)
 
 
 @app.route('/api/node/create')
-def create_node(project_id):
-	return "update node"
+def create_node():
+    data = json.loads(request.json['data'])
+    node = Node(data['project_id'], name=data['name'], parent_name=data['parent'])
+    db.session.add(node)
+    try:
+        db.session.commit()
+        return jsonify({'result': 'success'})
+    except:
+        return jsonify({'result': 'fail'})
 
 @app.route('/api/project/<project_id>/family/create')
 def family_create():
-	return u"family-createするお"
+    return u"family-createするお"
 
 @app.route('/api/morphologic', methods=['POST'])
 def extractKeyword():
