@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#/ usually written in app.py 
+#/ usually written in app.py
 from flask import Flask, request
 from flask_sqlalchemy import SQLAlchemy
 from flask import jsonify
@@ -45,7 +45,7 @@ class Family(db.Model):
 class Node(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
 	name = db.Column(db.String(80), nullable = False)
-	parent_id = db.Column(db.Integer, nullable=False)
+	parent_name = db.Column(db.String(80), nullable=False)
 	project_id = db.Column(db.Integer, nullable=False)
 
 	def __init__(self, project_id, **kwargs):
@@ -110,7 +110,7 @@ def brain_storming(project_id):
 @app.route('/api/node/create')
 def create_node():
     data = json.loads(request.json['data'])
-    node = Node(data['project_id'], name=data['name'], parent_id=data['parent_id'])
+    node = Node(data['project_id'], name=data['name'], parent_name=data['parent'])
     db.session.add(node)
     try:
         db.session.commit()
