@@ -82,7 +82,7 @@ def create_project():
     try:
         db.session.commit()
         db.session.flush(new_proj)
-        origin_node = Node(theme, parent="", new_proj.id)
+        origin_node = Node(theme, parent="", project_id=new_proj.id)
         db.session.add(origin_node)
         result.update({'result':'success', 'project_id':new_proj.id})
     except:
