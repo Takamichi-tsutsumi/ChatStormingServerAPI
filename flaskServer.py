@@ -50,9 +50,11 @@ class Node(db.Model):
 
 	def __init__(self, project_id, **kwargs):
 		self.project_id = project_id
+        self.name = kwargs['name']
+        self.parent_id = kwargs['parent_id']
 
 	def __repr__(self):
-		return '<Node name={name} parent_id={parent_id} project_id={project_id}>'.format(name = self.name, parent_id = self.parent_id, project_id = self.project_id) 
+		return '<Node name={name} parent_id={parent_id} project_id={project_id}>'.format(name = self.name, parent_id = self.parent_id, project_id = self.project_id)
 
 # ./ should be in models.py
 
@@ -106,8 +108,15 @@ def brain_storming(project_id):
 
 
 @app.route('/api/node/create')
-def create_node(project_id):
-	return "update node"
+def create_node():
+    data = json.loads(request.json['data'])
+    node = Node(data['project_id'], name=data['name'], parent_id=data['parent_id'])
+    db.session.add(node)
+    try:
+        db.session.commit()
+        return jsonify({'result': 'success'})
+    except:
+        return jsonify({'result': 'fail'})
 
 @app.route('/api/project/<project_id>/family/create')
 def family_create():
