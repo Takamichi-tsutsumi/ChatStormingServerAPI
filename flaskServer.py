@@ -20,11 +20,9 @@ db = SQLAlchemy(app)
 class Project(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), unique=True)
-    nodes = db.Column(db.String(250), nullable = False)
-    family = db.Column(db.String(120), nullable = False)
 
-    def __init__(self,name):
-        self.name = name
+    def __init__(self,**kwargs):
+        self.name = kwargs['name']
 
     def __repr__(self):
         return '<Project id={id} name={name}>'.format(id = self.id, name=self.name)
@@ -35,9 +33,10 @@ class Family(db.Model):
     nodes = db.Column(db.String(80), unique = True)
     project_id = db.Column(db.Integer, nullable = False)
 
-    def __init__(self):
-        family_name = self.family_name
-        nodes = self.nodes
+    def __init__(self, **kwargs):
+        self.name = kwargs['name']
+        self.nodes = kwargs['nodes']
+        self.project_id = kwargs['project_id']
 
     def __repr__(self, project_id):
         return '<Family id = {id}, family_name = {name}, nodes={nodes}, project_id={project_id}>'.format(id= self.id, name=self.name, nodes=self.nodes, project_id=self.project_id)
@@ -48,10 +47,10 @@ class Node(db.Model):
     parent_name = db.Column(db.String(80), nullable=False)
     project_id = db.Column(db.Integer, nullable=False)
 
-    def __init__(self, project_id, **kwargs):
-        self.project_id = project_id
+    def __init__(self, **kwargs):
+        self.project_id = kwargs['project_id']
         self.name = kwargs['name']
-        self.parent_name = kwargs['parent']
+        self.parent_name = kwargs['parent_name']
 
     def __repr__(self):
         return '<Node name={name} parent_id={parent_id} project_id={project_id}>'.format(name = self.name, parent_id = self.parent_id, project_id = self.project_id)
@@ -75,15 +74,16 @@ def index():
 def create_project():
     data = json.loads(request.json['data'])
     theme = data['theme']
-    new_proj = Project(data['name'])
+    new_proj = Project(name=data['name'])
 
     db.session.add(new_proj)
     result = {}
     try:
         db.session.commit()
         db.session.flush(new_proj)
-        origin_node = Node(theme, parent="", project_id=new_proj.id)
+        origin_node = Node(name=theme, parent="", project_id=new_proj.id)
         db.session.add(origin_node)
+        db.session.commit()
         result.update({'result':'success', 'project_id':new_proj.id})
     except:
         result.update({'result':'fail', 'msg':u'もう一度やり直してください。'})
@@ -111,7 +111,7 @@ def brain_storming(project_id):
     node_obj = Node.query.all()
     node_list = []
     for i in node_obj:
-        cont = {'id': i.id, 'node_name': i.name, 'parent_id': i.parent_id,}
+        cont = {'id': i.id, 'name': i.name, 'parent_name': i.parent_name}
         node_list.append(cont)
 
     return jsonify(Nodes=node_list)
@@ -120,7 +120,7 @@ def brain_storming(project_id):
 @app.route('/api/node/create', methods=['POST'])
 def create_node():
     data = json.loads(request.json['data'])
-    node = Node(data['project_id'], name=data['name'], parent=data['parent'])
+    node = Node(project_id=data['project_id'], name=data['name'], parent_name=data['parent_name'])
     db.session.add(node)
     try:
         db.session.commit()
@@ -131,7 +131,7 @@ def create_node():
 @app.route('/api/project/<project_id>/family/create', methods=['POST'])
 def family_create(project_id):
     data = json.loads(request.json['data'])
-    fam_obj = Family(data['name'], data['nodes'], data['project_id'])
+    fam_obj = Family(name=data['name'], nodes=data['nodes'], project_id=project_id)
     db.session.add(fam_obj)
     result = {}
     try:
@@ -141,8 +141,7 @@ def family_create(project_id):
     except:
         result.update({'result': 'fail', 'msg':'失敗しました。'})
     finally:
-        jsonify(Result=result)
-    return u"family-createするやつ"
+        return jsonify(Result=result)
 
 @app.route('/api/morphologic', methods=['POST'])
 def extractKeyword():
@@ -157,7 +156,6 @@ def extractKeyword():
             keywords.append(node.feature.split(",")[6])
         node = node.next
     return jsonify(keywords=keywords)
-
 
 if __name__ == '__main__':
     app.run()
