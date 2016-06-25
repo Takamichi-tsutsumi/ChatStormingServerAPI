@@ -74,19 +74,16 @@ def index():
 
 @app.route('/api/create', methods=['POST'])
 def create_project():
-    data = json.loads(request.json['data'])
-    theme = data['theme']
-    new_proj = Project(name=data['name'])
+    data = json.loads(request.json[u'data'])
+    theme = data[u'theme']
+    new_proj = Project(name=data[u'name'])
 
     db.session.add(new_proj)
     result = {}
     try:
         db.session.commit()
         db.session.flush(new_proj)
-        print new_proj.id
-        origin_node = Node(name=theme, parent_name="", project_id=new_proj.id)
-        print 'hello'
-        print origin_node
+        origin_node = Node(name=theme, parent_name=u"", project_id=new_proj.id)
         db.session.add(origin_node)
         db.session.commit()
         result.update({'result':'success', 'project_id':new_proj.id})
@@ -160,23 +157,23 @@ def familyList(project_id):
 @app.route('/api/morphologic', methods=['POST'])
 def extractKeyword():
     result = {}
-    if not request.json[u'text'] == '':
+    if not request.json['text'] == '':
         text = request.json[u'text']
         tagger = mecab.Tagger("-Ochasen")
         node = tagger.parseToNode(text.encode('utf-8'))
         keywords = []
         while node:
-            if node.feature.split(",")[0].decode('utf-8') == u'名詞':
-                try:
-                    keywords.append(node.surface.decode('utf-8'))
-                except UnicodeDecodeError:
+            try:
+                surface = node.surface.decode('utf-8')
+                if len(surface) >1:
+                    f = node.feature.split(',')
+                    if f[0].decode('utf-8') == u'名詞':
+                        keywords.append(surface)
+                    elif f[0].decode('utf-8') == u'動詞':
+                        keywords.append(f[-3].decode('utf-8'))
+                else:
                     pass
-            elif node.feature.split(",")[0].decode('utf-8') == u'動詞':
-                try:
-                    keywords.append(node.feature.split(",")[-3].decode('utf-8'))
-                except UnicodeDecodeError:
-                    pass
-            else:
+            except UnicodeDecodeError:
                 pass
             node = node.next
         return jsonify(keywords=keywords)
