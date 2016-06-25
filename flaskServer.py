@@ -23,8 +23,8 @@ class Project(db.Model):
     name = db.Column(db.String(120),unique=True)
     created_at = db.Column(db.DateTime, nullable=False, default = datetime.now())
     
-    family = db.relationship('Family', backref=db.backref('projects', lazy='select'))
-    node = db.relationship('Node', backref=db.backref('projects'), lazy='select')
+    family = db.relationship('Family', backref=db.backref('projects', lazy='immediate', ))
+    node = db.relationship('Node', backref=db.backref('projects'), lazy='immediate',)
 
     def __init__(self,**kwargs):
         self.name = kwargs['name']
@@ -52,7 +52,7 @@ class Node(db.Model):
     name = db.Column(db.String(80), nullable=False)
     parent_name = db.Column(db.String(80), nullable=False)
 
-    project_id = db.Column(db.Integer, db.ForeignKey('project.id', onupdate='CASCADE', ondelete='CASCADE'))
+    project_id = db.Column(db.Integer, db.ForeignKey('project.id'))
 
     def __init__(self, **kwargs):
         self.name = kwargs['name']
