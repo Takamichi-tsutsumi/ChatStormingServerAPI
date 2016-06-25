@@ -16,8 +16,57 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 db = SQLAlchemy(app)
 #./ usually written in app.py
 
+# / modified model
 
-# / should be in models.py
+class Project(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(120),unique=True)
+    created_at = db.Column(db.DateTime, nullable=False, default = datetime.now())
+    
+    family = db.relationship('Family', backref=db.backref('projects', lazy='select'))
+    node = db.relationship('Node', backref=db.backref('projects'), lazy='select')
+
+    def __init__(self,**kwargs):
+        self.name = kwargs['name']
+
+    def __repr__(self):
+        return '<Project %r %r %r>' % (self.id, self.name, self.created_at)
+
+class Family(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(120), unique =True)
+    nodes = db.Column(db.String(255),)
+
+    project_id = db.Column(db.Integer, db.ForeignKey('project.id'))
+
+    def __init__(self, **kwargs):
+        self.name = kwargs['name']
+        self.nodes = kwargs['nodes']
+        self.project_id = kwargs['project_id']
+
+    def __repr__(self):    
+        return '<Family id={id} name={name} nodes={nodes} protject_id={project_id} >'.format(id=self.id, name=self.name, nodes=self.nodes, project_id=self.project_id)
+    
+class Node(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(80), nullable=False)
+    parent_name = db.Column(db.String(80), nullable=False)
+
+    project_id = db.Column(db.Integer, db.ForeignKey('project.id', onupdate='CASCADE', ondelete='CASCADE'))
+
+    def __init__(self, **kwargs):
+        self.name = kwargs['name']
+        self.parent_name = kwargs['parent_name']
+        self.project_id = kwargs['project_id']
+
+    def __repr__(self):
+        return '<Node id={id} name={name} parent_name={parent_name} project_id={project_id}>'.format(id=self.id, name=self.name, parent_name=self.parent_name, project_id=self.project_id)
+
+
+# /. modified
+
+"""
+# / original
 class Project(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), unique=True)
@@ -57,8 +106,8 @@ class Node(db.Model):
     def __repr__(self):
         return u'<Node name={name} parent_id={parent_name} project_id={project_id}>'.format(name=self.name, parent_name=self.parent_name, project_id=self.project_id)
 
-# ./ should be in models.py
-
+# ./original sqlalchemy 
+"""
 
 # ここからindex : method とかを定義していく。
 
