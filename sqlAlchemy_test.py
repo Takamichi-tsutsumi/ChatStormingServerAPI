@@ -1,5 +1,4 @@
 from flaskServer import db, Project, Family, Node
-"""
 p1 = Project(name='applicot')
 p2 = Project(name='chatStorming')
 p3 = Project(name='SecretaryBot')
@@ -55,11 +54,14 @@ db.session.add(n12)
 db.session.commit()
 db.session.close()
 
+
+
+
+
 print '=============   check if call works ok =========== '
 project_id = 1
 
 p1 = Project.query.filter(Project.id==project_id).first()
-p2 = Project.query.filter(Project.id==2).first()
 print '____________________________ Project _______________________'
 print 'p1 =', p1
 print 'id = ', p1.id
@@ -83,9 +85,9 @@ print 'name = ', n1.name
 print 'parent_name = ', n1.parent_name
 print 'project_id = ', n1.project_id
 print 'projects_name (ForeginKey) =  ', n1.projects.name
-"""
+
 print '============ check if related delete works ok ================='
-project_id=3
+project_id=1
 p1 = Project.query.filter(Project.id==project_id).first()
 print p1
 

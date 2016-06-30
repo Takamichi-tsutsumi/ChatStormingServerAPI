@@ -51,6 +51,7 @@ class Node(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), nullable=False)
     parent_name = db.Column(db.String(80), nullable=False)
+    color = db.Column(db.String(80), nullable=True)
 
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'))
 
@@ -58,6 +59,7 @@ class Node(db.Model):
         self.name = kwargs['name']
         self.parent_name = kwargs['parent_name']
         self.project_id = kwargs['project_id']
+        self.color = kwargs['color']
 
     def __repr__(self):
         return '<Node id={id} name={name} parent_name={parent_name} project_id={project_id}>'.format(id=self.id, name=self.name, parent_name=self.parent_name, project_id=self.project_id)
