@@ -22,7 +22,6 @@ class Project(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120),unique=True)
     created_at = db.Column(db.DateTime, nullable=False, default = datetime.now())
-    
     family = db.relationship('Family', backref=db.backref('projects', lazy='immediate', ))
     node = db.relationship('Node', backref=db.backref('projects'), lazy='immediate',)
 
@@ -134,7 +133,7 @@ def create_project():
     try:
         db.session.commit()
         db.session.flush(new_proj)
-        origin_node = Node(name=theme, parent_name=u"", project_id=new_proj.id)
+        origin_node = Node(name=theme, parent_name=u"", project_id=new_proj.id, color="skyblue")
         db.session.add(origin_node)
         db.session.commit()
         result.update({'result':'success', 'project_id':new_proj.id})
