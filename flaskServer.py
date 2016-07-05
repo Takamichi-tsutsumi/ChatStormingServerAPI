@@ -44,7 +44,7 @@ class Family(db.Model):
         self.nodes = kwargs['nodes']
         self.project_id = kwargs['project_id']
 
-    def __repr__(self):    
+    def __repr__(self):
         return '<Family id={id} name={name} nodes={nodes} protject_id={project_id} >'.format(id=self.id, name=self.name, nodes=self.nodes, project_id=self.project_id)
     
 class Node(db.Model):
@@ -164,7 +164,7 @@ def brain_storming(project_id):
     node_obj = Node.query.filter(Node.project_id == project_id).all()
     node_list = []
     for i in node_obj:
-        cont = {'id': i.id, 'name': i.name, 'parent_name': i.parent_name}
+        cont = {'id': i.id, 'name': i.name, 'parent_name': i.parent_name, 'color': i.color}
         node_list.append(cont)
 
     return jsonify(Nodes=node_list)
@@ -173,7 +173,7 @@ def brain_storming(project_id):
 @app.route('/api/node/create', methods=['POST'])
 def create_node():
     data = json.loads(request.json['data'])
-    node = Node(project_id=data['project_id'], name=data['name'], parent_name=data['parent_name'])
+    node = Node(project_id=data['project_id'], name=data['name'], parent_name=data['parent_name'], color=data['color'])
     db.session.add(node)
     try:
         db.session.commit()
